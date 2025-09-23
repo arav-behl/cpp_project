@@ -1,0 +1,2 @@
+/usr/bin/ar qc librt_core.a CMakeFiles/rt_core.dir/src/md/feed_sim.cpp.o CMakeFiles/rt_core.dir/src/stats/rolling_stats.cpp.o CMakeFiles/rt_core.dir/src/stats/rolling_covar.cpp.o CMakeFiles/rt_core.dir/src/engine/signal_rules.cpp.o CMakeFiles/rt_core.dir/src/engine/router.cpp.o CMakeFiles/rt_core.dir/src/util/latency.cpp.o
+/usr/bin/ranlib librt_core.a
