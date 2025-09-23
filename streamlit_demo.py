@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Streamlit Demo: C++ Real-Time Trading System Simulator
-Single-file demo for recruiters - showcases C++ concepts in Python
 """
 
 import streamlit as st
@@ -321,15 +320,15 @@ def main():
         st.markdown("""
         This demonstrates a **production C++ quantitative trading system**:
 
-        - **🔒 Lock-Free SPSC Queue**: Ring buffer with acquire/release memory ordering
-        - **📊 Welford's Algorithm**: Numerically stable streaming statistics
+        - ** Lock-Free SPSC Queue**: Ring buffer with acquire/release memory ordering
+        - ** Welford's Algorithm**: Numerically stable streaming statistics
         - **⚡ Sub-microsecond Latency**: Optimized hot path with zero-copy design
-        - **🧮 Real-Time Signals**: Z-score breakouts, correlation analysis, volume spikes
-        - **📈 Performance Monitoring**: Latency histograms and throughput tracking
+        - ** Real-Time Signals**: Z-score breakouts, correlation analysis, volume spikes
+        - ** Performance Monitoring**: Latency histograms and throughput tracking
         """)
 
     with col2:
-        st.header("🏗️ Signal Types")
+        st.header(" Signal Types")
         st.markdown("""
         **Z-Score Breakout**
         Price moves >2.5σ from mean
@@ -345,17 +344,17 @@ def main():
         """)
 
     # Note about the simulation
-    st.info("🔄 **Note**: This Streamlit demo simulates the C++ system's behavior. The actual implementation uses lock-free queues, Welford's algorithm, and achieves sub-microsecond latencies.")
+    st.info(" **Note**: This Streamlit demo simulates the C++ system's behavior. The actual implementation uses lock-free queues, Welford's algorithm, and achieves sub-microsecond latencies.")
 
     # Demo section
-    st.header("🚀 Live Trading System Demo")
+    st.header(" Live Trading System Demo")
 
     if len(symbols) < 2:
         st.warning("Please select at least 2 symbols for correlation analysis.")
         return
 
-    if st.button("🎬 Run C++ Trading System Simulation", type="primary", key="run_sim"):
-        st.success(f"🔄 Starting C++ trading engine: {len(symbols)} symbols @ {tick_rate} Hz for {duration}s...")
+    if st.button(" Run C++ Trading System Simulation", type="primary", key="run_sim"):
+        st.success(f" Starting C++ trading engine: {len(symbols)} symbols @ {tick_rate} Hz for {duration}s...")
 
         # Initialize simulator
         simulator = TradingSystemSimulator()
@@ -375,7 +374,7 @@ def main():
             result = simulator.run_simulation(progress_callback)
 
         progress_bar.progress(1.0)
-        status_text.text("✅ Simulation completed!")
+        status_text.text(" Simulation completed!")
 
         if result['success']:
             display_results(result, simulator)
@@ -420,7 +419,7 @@ def display_results(result: Dict, simulator: TradingSystemSimulator):
         )
 
     # Tabs for different analyses
-    tab1, tab2, tab3, tab4 = st.tabs(["🎯 Trading Signals", "⚡ Latency Analysis", "📈 Price Action", "🔧 C++ Concepts"])
+    tab1, tab2, tab3, tab4 = st.tabs([" Trading Signals", "⚡ Latency Analysis", " Price Action", " C++ Concepts"])
 
     with tab1:
         display_signals_analysis(signals)
@@ -469,7 +468,7 @@ def display_signals_analysis(signals: List[Dict]):
         st.plotly_chart(fig, use_container_width=True)
 
     # Recent signals table
-    st.subheader("🚨 Recent Trading Signals")
+    st.subheader("Recent Trading Signals")
 
     display_signals = signals_df.tail(10).copy()
     display_signals['timestamp'] = display_signals['timestamp'].dt.strftime('%H:%M:%S.%f')
@@ -483,7 +482,7 @@ def display_signals_analysis(signals: List[Dict]):
     )
 
     # Show signal alerts
-    st.subheader("📢 Live Signal Feed")
+    st.subheader(" Live Signal Feed")
     for signal in signals[-5:]:  # Show last 5 signals
         signal_type = signal['type']
         symbol = signal['symbol']
@@ -558,13 +557,13 @@ def display_price_analysis(final_prices: Dict[str, float]):
 def display_cpp_concepts():
     """Explain the C++ concepts demonstrated"""
 
-    st.subheader("🔧 C++ Systems Programming Concepts")
+    st.subheader("C++ Systems Programming Concepts")
 
     col1, col2 = st.columns(2)
 
     with col1:
         st.markdown("""
-        **🔒 Lock-Free Programming**
+        ** Lock-Free Programming**
         ```cpp
         template<typename T, size_t N>
         class SPSCQueue {
@@ -578,7 +577,7 @@ def display_cpp_concepts():
         };
         ```
 
-        **📊 Numerical Stability**
+        ** Numerical Stability**
         ```cpp
         // Welford's algorithm prevents cancellation
         void add(double x) {
@@ -601,7 +600,7 @@ def display_cpp_concepts():
         };
         ```
 
-        **🧮 Template Metaprogramming**
+        **Template Metaprogramming**
         ```cpp
         template<size_t WindowSize>
         class WindowedStats {
@@ -611,7 +610,7 @@ def display_cpp_concepts():
         ```
         """)
 
-    st.subheader("🎯 Interview Talking Points")
+    st.subheader("Main C++ Concepts & Features Built")
 
     st.markdown("""
     - **"Implemented lock-free SPSC queue using acquire/release memory ordering"**
