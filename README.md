@@ -104,18 +104,20 @@ cmake -S . -B build && cmake --build build -j8
 - Latency stats (P50/P95/P99 in microseconds)
 - Throughput metrics (ticks/sec)
 
-### Option 2: Interactive Web Dashboard (Live Streaming!)
+### Option 2: Record a Demo Video
+
+For remote demos, record your terminal:
 
 ```bash
-pip install streamlit pandas plotly
-streamlit run streamlit_demo.py
+# macOS: Use QuickTime (Cmd+Shift+5)
+# Linux: Use SimpleScreenRecorder or OBS
+# Windows: Use OBS Studio or Windows Game Bar
+
+# Then run:
+./build/demo_realtime --duration 30 --rate 2000
 ```
 
-**Features:**
-- 🔴 Live terminal output streaming (watch C++ run in real-time!)
-- 📊 Auto-generated charts when complete
-- ⏱️ Real-time progress tracking
-- 🎨 Terminal-style output (Matrix green-on-black)
+Upload to YouTube/Loom and share the link!
 
 ---
 
@@ -247,10 +249,9 @@ cat data/latency_histogram.csv
 ├── src/                  # Implementation files (minimal for header-only design)
 ├── examples/
 │   └── demo_realtime.cpp     ← Main demo application
-├── tests/
-│   ├── test_stats.cpp        ← Statistical correctness tests
-│   └── test_queue.cpp        ← Queue concurrency tests
-└── streamlit_demo.py     ← Live web dashboard with terminal streaming
+└── tests/
+    ├── test_stats.cpp        ← Statistical correctness tests
+    └── test_queue.cpp        ← Queue concurrency tests
 ```
 
 ---

@@ -23,6 +23,7 @@ __pycache__/
 *.pyc
 streamlit_dashboard.py
 cpp_trading_wrapper.py
+streamlit_demo.py
 
 # IDE
 .DS_Store
