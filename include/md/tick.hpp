@@ -2,14 +2,46 @@
 #include <chrono>
 #include <string_view>
 #include <cstdint>
+#include <array>
+#include <unordered_map>
+#include <atomic>
+#include <mutex>
+#include <stdexcept>
 
 // Symbol interning for zero-allocation string handling
 struct SymbolTable {
     static constexpr size_t MAX_SYMBOLS = 256;
+
     static inline std::string_view intern(const std::string& sym) {
-        // In production, this would use a hash table
-        // For demo, just return string_view (assumes static lifetime)
-        return std::string_view{sym};
+        // Thread-safe symbol pool using static storage
+        static std::array<std::string, MAX_SYMBOLS> symbol_pool;
+        static std::unordered_map<std::string_view, size_t> symbol_index;
+        static std::atomic<size_t> next_id{0};
+        static std::mutex pool_mutex;
+
+        // Fast path: check if symbol already exists (lock-free read)
+        auto it = symbol_index.find(sym);
+        if (it != symbol_index.end()) {
+            return std::string_view{symbol_pool[it->second]};
+        }
+
+        // Slow path: add new symbol (locked write)
+        std::lock_guard<std::mutex> lock(pool_mutex);
+
+        // Double-check after acquiring lock
+        it = symbol_index.find(sym);
+        if (it != symbol_index.end()) {
+            return std::string_view{symbol_pool[it->second]};
+        }
+
+        size_t id = next_id.fetch_add(1, std::memory_order_relaxed);
+        if (id >= MAX_SYMBOLS) {
+            throw std::runtime_error("Symbol table overflow - increase MAX_SYMBOLS");
+        }
+
+        symbol_pool[id] = sym;
+        symbol_index[std::string_view{symbol_pool[id]}] = id;
+        return std::string_view{symbol_pool[id]};
     }
 };
 

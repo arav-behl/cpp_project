@@ -32,15 +32,16 @@ public:
     // Producer side - single thread only
     [[nodiscard]] bool push(const T& item) noexcept {
         const size_t head = head_.load(std::memory_order_relaxed);
-        const size_t next_head = (head + 1) & MASK;
+        const size_t tail = tail_.load(std::memory_order_acquire);
+        const size_t next_head = head + 1;
 
-        // Check if queue is full
-        if (next_head == (tail_.load(std::memory_order_acquire) & MASK)) {
+        // Check if queue is full (need to leave one slot empty to distinguish full from empty)
+        if ((next_head & MASK) == (tail & MASK)) {
             return false; // Queue full
         }
 
         // Place item in buffer
-        buffer_[head] = item;
+        buffer_[head & MASK] = item;
 
         // Publish the new head (release semantics ensure all writes are visible)
         head_.store(next_head, std::memory_order_release);
@@ -50,13 +51,14 @@ public:
     // Move version for better performance
     [[nodiscard]] bool push(T&& item) noexcept {
         const size_t head = head_.load(std::memory_order_relaxed);
-        const size_t next_head = (head + 1) & MASK;
+        const size_t tail = tail_.load(std::memory_order_acquire);
+        const size_t next_head = head + 1;
 
-        if (next_head == (tail_.load(std::memory_order_acquire) & MASK)) {
+        if ((next_head & MASK) == (tail & MASK)) {
             return false;
         }
 
-        buffer_[head] = std::move(item);
+        buffer_[head & MASK] = std::move(item);
         head_.store(next_head, std::memory_order_release);
         return true;
     }
@@ -64,17 +66,18 @@ public:
     // Consumer side - single thread only
     [[nodiscard]] bool pop(T& item) noexcept {
         const size_t tail = tail_.load(std::memory_order_relaxed);
+        const size_t head = head_.load(std::memory_order_acquire);
 
-        // Check if queue is empty
-        if (tail == (head_.load(std::memory_order_acquire) & MASK)) {
+        // Check if queue is empty (compare masked indices)
+        if ((tail & MASK) == (head & MASK)) {
             return false; // Queue empty
         }
 
         // Extract item from buffer
-        item = std::move(buffer_[tail]);
+        item = std::move(buffer_[tail & MASK]);
 
         // Publish the new tail
-        tail_.store((tail + 1) & MASK, std::memory_order_release);
+        tail_.store(tail + 1, std::memory_order_release);
         return true;
     }
 
