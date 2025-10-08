@@ -82,8 +82,10 @@ def stream_process_output(process, output_queue, stop_event):
 
 def run_cpp_simulation(duration, tick_rate, zscore_threshold):
     """Run C++ simulation with live output streaming"""
-    executable = Path("build/demo_realtime")
-    data_dir = Path("data")
+    # Get absolute path to executable
+    import os
+    executable = Path(os.getcwd()) / "build" / "demo_realtime"
+    data_dir = Path(os.getcwd()) / "data"
     data_dir.mkdir(exist_ok=True)
 
     # Clean old data files
@@ -93,7 +95,14 @@ def run_cpp_simulation(duration, tick_rate, zscore_threshold):
         except:
             pass
 
-    # Build command
+    # Verify executable exists and is executable
+    if not executable.exists():
+        raise FileNotFoundError(f"Executable not found: {executable}")
+
+    # Make sure it's executable
+    os.chmod(str(executable), 0o755)
+
+    # Build command with absolute path
     cmd = [
         str(executable),
         "--duration", str(duration),
@@ -105,14 +114,16 @@ def run_cpp_simulation(duration, tick_rate, zscore_threshold):
     output_queue = queue.Queue()
     stop_event = threading.Event()
 
-    # Start process
+    # Start process with explicit shell=False and cwd
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
-        universal_newlines=True
+        universal_newlines=True,
+        cwd=str(Path(os.getcwd())),
+        shell=False
     )
 
     # Start output streaming thread
@@ -200,13 +211,15 @@ def main():
 
     # System info
     st.sidebar.header("🔧 System Information")
-    executable = Path("build/demo_realtime")
+    import os
+    executable = Path(os.getcwd()) / "build" / "demo_realtime"
     if executable.exists():
         st.sidebar.success("✅ C++ Engine Ready")
         st.sidebar.code(f"{executable}", language="bash")
     else:
         st.sidebar.error("❌ C++ Engine Not Found")
-        st.sidebar.text("Run: cmake -S . -B build && cmake --build build")
+        st.sidebar.code(f"Expected at: {executable}")
+        st.sidebar.text("Run: cmake -S . -B build && cmake --build build -j8")
         return
 
     # Main content area
