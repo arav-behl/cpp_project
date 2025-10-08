@@ -8,7 +8,7 @@
 
 **Perfect for quant/HFT interviews** — Demonstrates lock-free concurrency, numerically stable algorithms, and cache-aware design.
 
-**👉 [5-Minute Recruiter Demo](DEMO.md)** | **👉 GitHub:** https://github.com/arav-behl/cpp_project
+**👉 GitHub:** https://github.com/arav-behl/cpp_project
 
 ---
 
@@ -104,16 +104,18 @@ cmake -S . -B build && cmake --build build -j8
 - Latency stats (P50/P95/P99 in microseconds)
 - Throughput metrics (ticks/sec)
 
-**📖 Full Demo Guide:** [DEMO.md](DEMO.md)
-
-### Option 2: Interactive Web Dashboard
+### Option 2: Interactive Web Dashboard (Live Streaming!)
 
 ```bash
-pip install -r requirements.txt
-streamlit run streamlit_dashboard.py
+pip install streamlit pandas plotly
+streamlit run streamlit_demo.py
 ```
 
-Click **"Run Trading System Demo"** in your browser for live charts!
+**Features:**
+- 🔴 Live terminal output streaming (watch C++ run in real-time!)
+- 📊 Auto-generated charts when complete
+- ⏱️ Real-time progress tracking
+- 🎨 Terminal-style output (Matrix green-on-black)
 
 ---
 
@@ -248,8 +250,7 @@ cat data/latency_histogram.csv
 ├── tests/
 │   ├── test_stats.cpp        ← Statistical correctness tests
 │   └── test_queue.cpp        ← Queue concurrency tests
-├── DEMO.md               ← 5-minute recruiter guide
-└── CLAUDE.md             ← Project roadmap and design docs
+└── streamlit_demo.py     ← Live web dashboard with terminal streaming
 ```
 
 ---
@@ -296,7 +297,6 @@ cat data/latency_histogram.csv
 ---
 
 **GitHub:** https://github.com/arav-behl/cpp_project
-**Demo Guide:** [DEMO.md](DEMO.md)
 
 ---
 
