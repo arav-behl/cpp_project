@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """
 Streamlit Demo: C++ Real-Time Trading System
-Note: This requires local C++ compilation - won't work on Streamlit Cloud
+Interactive visualization of exported CSV data
 """
 
 import streamlit as st
-import os
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from pathlib import Path
+import numpy as np
 
 # Page configuration
 st.set_page_config(
@@ -24,7 +28,7 @@ st.markdown("""
         font-weight: bold;
         text-align: center;
         color: #1f77b4;
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
     .tech-badge {
         background-color: #ff4b4b;
@@ -35,8 +39,57 @@ st.markdown("""
         font-weight: bold;
         margin: 0.2rem;
     }
+    .metric-card {
+        background-color: #f0f2f6;
+        padding: 1rem;
+        border-radius: 10px;
+        border-left: 4px solid #ff4b4b;
+    }
+    .signal-card {
+        background-color: #fff3cd;
+        padding: 0.5rem;
+        border-radius: 5px;
+        border-left: 3px solid #ffc107;
+        margin: 0.5rem 0;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+def load_data():
+    """Load CSV data files"""
+    data_dir = Path("data")
+
+    signals_df = None
+    latency_df = None
+
+    # Load signals
+    signals_path = data_dir / "signals.csv"
+    if signals_path.exists():
+        try:
+            # For very large files, sample the data
+            file_size = signals_path.stat().st_size
+            if file_size > 10_000_000:  # If larger than 10MB
+                # Sample 100k rows
+                signals_df = pd.read_csv(signals_path, nrows=100_000)
+                st.info(f"📊 Large dataset detected ({file_size / 1_000_000:.1f}MB). Showing sample of 100k signals.")
+            else:
+                signals_df = pd.read_csv(signals_path)
+
+            # Convert timestamp to seconds for better readability
+            if 'timestamp' in signals_df.columns:
+                signals_df['timestamp_sec'] = signals_df['timestamp'] / 1_000_000
+        except Exception as e:
+            st.error(f"Error loading signals.csv: {e}")
+
+    # Load latency histogram
+    latency_path = data_dir / "latency_histogram.csv"
+    if latency_path.exists():
+        try:
+            latency_df = pd.read_csv(latency_path)
+        except Exception as e:
+            st.error(f"Error loading latency_histogram.csv: {e}")
+
+    return signals_df, latency_df
 
 def main():
     # Title
@@ -52,10 +105,13 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    # Check if running on Streamlit Cloud
-    is_cloud = os.environ.get("STREAMLIT_SHARING_MODE") or not Path("build/demo_realtime").exists()
+    # Load data
+    signals_df, latency_df = load_data()
 
-    if is_cloud:
+    # Check if data exists
+    has_data = signals_df is not None and latency_df is not None
+
+    if not has_data:
         st.error("⚠️ This demo requires local C++ compilation")
         st.markdown("""
         ## 📺 This Demo Requires Local Setup
@@ -178,20 +234,312 @@ def main():
         """, language="text")
 
     else:
-        st.success("✅ Running locally - full demo available!")
-        st.markdown("""
-        ## 🎬 How to Use:
+        # ========================================
+        # MAIN DASHBOARD WITH DATA VISUALIZATION
+        # ========================================
 
-        1. Adjust parameters in the sidebar
-        2. Click "Run Demo" below
-        3. Watch live C++ output stream in real-time
-        4. View charts and analytics when complete
+        st.success("✅ Data loaded successfully!")
 
-        **Note**: This requires the C++ executable to be built first.
-        If you see errors, run: `cmake -S . -B build && cmake --build build`
-        """)
+        # ========================================
+        # SIDEBAR CONTROLS
+        # ========================================
+        with st.sidebar:
+            st.header("⚙️ Dashboard Controls")
 
-        st.info("⚠️ Local demo functionality would go here - but keeping it simple since Streamlit Cloud can't run C++ binaries anyway!")
+            # Signal type filter
+            signal_types = ['All'] + sorted(signals_df['type'].unique().tolist())
+            selected_signal_type = st.selectbox("Signal Type", signal_types)
+
+            # Symbol filter
+            all_symbols = set()
+            for col in ['primary_symbol', 'secondary_symbol']:
+                if col in signals_df.columns:
+                    all_symbols.update(signals_df[col].dropna().unique())
+            all_symbols = ['All'] + sorted(list(all_symbols))
+            selected_symbol = st.selectbox("Symbol", all_symbols)
+
+            # Time range
+            if 'timestamp_sec' in signals_df.columns:
+                min_time = float(signals_df['timestamp_sec'].min())
+                max_time = float(signals_df['timestamp_sec'].max())
+                time_range = st.slider(
+                    "Time Range (seconds)",
+                    min_value=min_time,
+                    max_value=max_time,
+                    value=(min_time, max_time)
+                )
+
+            st.markdown("---")
+            st.markdown("### 📊 About This System")
+            st.markdown("""
+            **Architecture:**
+            - Lock-free SPSC queue
+            - Welford's streaming stats
+            - Multi-threaded design
+
+            **Signals:**
+            - Z-Score breakouts
+            - Correlation breaks
+            - Volume spikes
+            """)
+
+        # ========================================
+        # FILTER DATA
+        # ========================================
+        filtered_signals = signals_df.copy()
+
+        if selected_signal_type != 'All':
+            filtered_signals = filtered_signals[filtered_signals['type'] == selected_signal_type]
+
+        if selected_symbol != 'All':
+            filtered_signals = filtered_signals[
+                (filtered_signals['primary_symbol'] == selected_symbol) |
+                (filtered_signals['secondary_symbol'] == selected_symbol)
+            ]
+
+        if 'timestamp_sec' in filtered_signals.columns:
+            filtered_signals = filtered_signals[
+                (filtered_signals['timestamp_sec'] >= time_range[0]) &
+                (filtered_signals['timestamp_sec'] <= time_range[1])
+            ]
+
+        # ========================================
+        # KEY METRICS ROW
+        # ========================================
+        st.markdown("## 📈 Performance Metrics")
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            total_signals = len(filtered_signals)
+            st.metric("Total Signals", f"{total_signals:,}")
+
+        with col2:
+            # Calculate average latency from histogram
+            if latency_df is not None and 'count' in latency_df.columns:
+                total_samples = latency_df['count'].sum()
+                # Weighted average using bucket midpoints
+                latency_df['midpoint'] = (latency_df['lower_bound_us'] + latency_df['upper_bound_us']) / 2
+                avg_latency = (latency_df['midpoint'] * latency_df['count']).sum() / total_samples
+                st.metric("Avg Latency", f"{avg_latency:.0f} μs")
+
+        with col3:
+            # Calculate P99 latency
+            cumsum = latency_df['percentage'].cumsum()
+            p99_bucket = latency_df[cumsum >= 99.0].iloc[0] if len(latency_df[cumsum >= 99.0]) > 0 else latency_df.iloc[-1]
+            st.metric("P99 Latency", f"{p99_bucket['upper_bound_us']:.0f} μs")
+
+        with col4:
+            unique_pairs = filtered_signals[['primary_symbol', 'secondary_symbol']].drop_duplicates()
+            st.metric("Active Pairs", len(unique_pairs))
+
+        st.markdown("---")
+
+        # ========================================
+        # LATENCY DISTRIBUTION
+        # ========================================
+        st.markdown("## ⏱️ Latency Distribution")
+
+        col1, col2 = st.columns([2, 1])
+
+        with col1:
+            # Latency histogram
+            fig_latency = go.Figure()
+
+            # Filter out extreme outliers for better visualization
+            display_latency = latency_df[latency_df['upper_bound_us'] <= 50000].copy()
+
+            fig_latency.add_trace(go.Bar(
+                x=[f"{int(row['lower_bound_us'])}-{int(row['upper_bound_us'])}" for _, row in display_latency.iterrows()],
+                y=display_latency['percentage'],
+                text=[f"{p:.2f}%" for p in display_latency['percentage']],
+                textposition='auto',
+                marker_color='#ff4b4b',
+                hovertemplate='<b>%{x} μs</b><br>%{y:.2f}%<extra></extra>'
+            ))
+
+            fig_latency.update_layout(
+                title="Latency Histogram (< 50ms range)",
+                xaxis_title="Latency Range (μs)",
+                yaxis_title="Percentage (%)",
+                height=400,
+                hovermode='x unified',
+                showlegend=False
+            )
+
+            st.plotly_chart(fig_latency, use_container_width=True)
+
+        with col2:
+            st.markdown("### 🎯 Latency Percentiles")
+
+            # Calculate percentiles
+            percentiles = [50, 75, 90, 95, 99]
+            cumsum = latency_df['percentage'].cumsum()
+
+            for p in percentiles:
+                bucket = latency_df[cumsum >= p].iloc[0] if len(latency_df[cumsum >= p]) > 0 else latency_df.iloc[-1]
+                st.markdown(f"""
+                <div class="metric-card">
+                    <strong>P{p}</strong>: {bucket['upper_bound_us']:.0f} μs
+                </div>
+                """, unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # ========================================
+        # SIGNAL ANALYSIS
+        # ========================================
+        st.markdown("## 🚨 Signal Analysis")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            # Signal type distribution
+            signal_counts = filtered_signals['type'].value_counts()
+
+            fig_signal_types = go.Figure(data=[go.Pie(
+                labels=signal_counts.index,
+                values=signal_counts.values,
+                hole=0.4,
+                marker=dict(colors=['#ff4b4b', '#ffa600', '#00cc96'])
+            )])
+
+            fig_signal_types.update_layout(
+                title="Signal Type Distribution",
+                height=400
+            )
+
+            st.plotly_chart(fig_signal_types, use_container_width=True)
+
+        with col2:
+            # Signal strength distribution
+            if 'signal_strength' in filtered_signals.columns:
+                fig_strength = px.histogram(
+                    filtered_signals[filtered_signals['signal_strength'] > 0],
+                    x='signal_strength',
+                    nbins=30,
+                    title="Signal Strength Distribution",
+                    color_discrete_sequence=['#ff4b4b']
+                )
+                fig_strength.update_layout(height=400)
+                st.plotly_chart(fig_strength, use_container_width=True)
+
+        # ========================================
+        # SIGNALS OVER TIME
+        # ========================================
+        if 'timestamp_sec' in filtered_signals.columns:
+            st.markdown("## 📊 Signals Over Time")
+
+            # Group signals by time windows
+            time_bins = pd.cut(filtered_signals['timestamp_sec'], bins=50)
+            signals_over_time = filtered_signals.groupby([time_bins, 'type']).size().reset_index(name='count')
+            signals_over_time['time_midpoint'] = signals_over_time['timestamp_sec'].apply(lambda x: x.mid)
+
+            fig_timeline = px.line(
+                signals_over_time,
+                x='time_midpoint',
+                y='count',
+                color='type',
+                title="Signal Frequency Over Time",
+                labels={'time_midpoint': 'Time (seconds)', 'count': 'Signal Count'},
+                color_discrete_sequence=['#ff4b4b', '#ffa600', '#00cc96']
+            )
+
+            fig_timeline.update_layout(height=400, hovermode='x unified')
+            st.plotly_chart(fig_timeline, use_container_width=True)
+
+        st.markdown("---")
+
+        # ========================================
+        # SYMBOL PAIR ANALYSIS
+        # ========================================
+        st.markdown("## 🔗 Symbol Pair Analysis")
+
+        # Get correlation break signals
+        corr_signals = filtered_signals[
+            (filtered_signals['type'] == 'CorrBreak') &
+            (filtered_signals['secondary_symbol'].notna())
+        ]
+
+        if len(corr_signals) > 0:
+            # Count signals per pair
+            corr_signals['pair'] = corr_signals['primary_symbol'] + ' / ' + corr_signals['secondary_symbol']
+            pair_counts = corr_signals['pair'].value_counts().head(10)
+
+            fig_pairs = go.Figure(data=[go.Bar(
+                x=pair_counts.values,
+                y=pair_counts.index,
+                orientation='h',
+                marker_color='#ff4b4b',
+                text=pair_counts.values,
+                textposition='auto'
+            )])
+
+            fig_pairs.update_layout(
+                title="Top 10 Most Active Pairs (Correlation Breaks)",
+                xaxis_title="Signal Count",
+                yaxis_title="Symbol Pair",
+                height=400
+            )
+
+            st.plotly_chart(fig_pairs, use_container_width=True)
+
+        # ========================================
+        # RECENT SIGNALS TABLE
+        # ========================================
+        st.markdown("## 📋 Recent Signals")
+
+        # Show top signals
+        display_columns = ['timestamp_sec', 'signal_id', 'type', 'primary_symbol', 'secondary_symbol', 'signal_strength', 'confidence']
+        display_columns = [col for col in display_columns if col in filtered_signals.columns]
+
+        recent_signals = filtered_signals.nlargest(100, 'signal_id')[display_columns]
+
+        # Format for display
+        if 'timestamp_sec' in recent_signals.columns:
+            recent_signals['timestamp_sec'] = recent_signals['timestamp_sec'].round(3)
+
+        st.dataframe(
+            recent_signals,
+            use_container_width=True,
+            height=400
+        )
+
+        # ========================================
+        # TECHNICAL DETAILS EXPANDER
+        # ========================================
+        with st.expander("🔧 Technical Implementation Details"):
+            st.markdown("""
+            ### System Architecture
+
+            **Threading Model:**
+            - **Producer Thread**: Feed simulator generating market data ticks
+            - **Consumer Thread**: Signal engine processing ticks and detecting patterns
+            - **SPSC Queue**: Lock-free ring buffer (65536 capacity) connecting producer/consumer
+
+            **Statistical Methods:**
+            - **Welford's Algorithm**: Online mean/variance calculation with numerical stability
+            - **Online Covariance**: Streaming correlation computation between symbol pairs
+            - **EMA Smoothing**: Exponential moving averages for fast rolling statistics
+
+            **Signal Detection:**
+            - **Z-Score Breakout**: Triggers when price deviates > 2.5σ from mean
+            - **Correlation Break**: Detects when pair correlation drops below threshold
+            - **Volume Spike**: Identifies abnormal trading volume (> 3σ)
+
+            **Performance Optimizations:**
+            - Cache-line alignment (64-byte) to prevent false sharing
+            - Move semantics and string_view to avoid allocations
+            - Steady clock timestamps for monotonic latency measurement
+            - Bounded memory with fixed-size ring buffers
+
+            ### Build Instructions
+
+            ```bash
+            cmake -S . -B build && cmake --build build -j8
+            ./build/demo_realtime --duration 30 --rate 2000
+            ```
+            """)
 
 if __name__ == "__main__":
     main()
