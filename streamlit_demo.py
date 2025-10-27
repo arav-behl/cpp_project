@@ -15,7 +15,7 @@ import numpy as np
 # Page configuration
 st.set_page_config(
     page_title="C++ Real-Time Trading System",
-    page_icon="🚀",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -93,7 +93,7 @@ def load_data():
 
 def main():
     # Title
-    st.markdown('<h1 class="main-header">🚀 C++ Real-Time Trading System</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">C++ Real-Time Trading System</h1>', unsafe_allow_html=True)
 
     st.markdown("""
     <div style="text-align: center; margin-bottom: 2rem;">
@@ -112,16 +112,16 @@ def main():
     has_data = signals_df is not None and latency_df is not None
 
     if not has_data:
-        st.error("⚠️ This demo requires local C++ compilation")
+        st.error("This demo requires local C++ compilation")
         st.markdown("""
-        ## 📺 This Demo Requires Local Setup
+        ## This Demo Requires Local Setup
 
         This C++ trading system needs to be **compiled and run locally** because:
         - It's a native C++ executable (compiled binary)
         - Streamlit Cloud runs on Linux, but the code needs to be compiled for your OS
         - Live performance requires local hardware access
 
-        ### 🚀 To Run Locally:
+        ### To Run Locally:
 
         ```bash
         # Clone the repository
@@ -139,7 +139,7 @@ def main():
         streamlit run streamlit_demo.py
         ```
 
-        ### 🎯 What You'll See:
+        ### What You'll See:
 
         - **Live terminal output** streaming in real-time
         - **Signal detections** as they fire (Z-score, correlation breaks)
@@ -147,18 +147,9 @@ def main():
         - **Throughput metrics** (thousands of ticks per second)
         - **Performance charts** with interactive visualizations
 
-        ### 📹 Want a Quick Preview?
-
-        I recommend recording a local demo with:
-        - **macOS**: QuickTime (Cmd+Shift+5)
-        - **Linux**: SimpleScreenRecorder or OBS
-        - **Windows**: OBS Studio or Windows Game Bar
-
-        Then upload to YouTube/Loom for sharing!
-
         ---
 
-        ### 🏗️ Architecture Overview
+        ### Architecture Overview
 
         ```
         ┌─────────────────┐
@@ -181,7 +172,7 @@ def main():
         └─────────────────┘
         ```
 
-        ### 🎪 Key Technical Features:
+        ### Key Technical Features:
 
         - **Lock-Free Concurrency**: SPSC queue with acquire/release memory ordering
         - **Numerical Stability**: Welford's algorithm for streaming variance
@@ -189,7 +180,7 @@ def main():
         - **Zero-Copy**: Move semantics and string_view for hot path
         - **Sub-Millisecond Latency**: Steady clock timestamps, bounded memory
 
-        ### 📊 Performance Benchmarks:
+        ### Performance Benchmarks:
 
         Typical results on modern hardware:
         - **Throughput**: 1-5M ticks/sec
@@ -199,25 +190,14 @@ def main():
 
         ---
 
-        ### 💼 For Recruiters:
-
-        This project demonstrates production-level C++ skills:
-
-        1. **Systems Programming**: Lock-free data structures, memory ordering
-        2. **Performance Engineering**: Cache optimization, zero-copy design
-        3. **Quantitative Finance**: Streaming statistics, signal detection
-        4. **Clean Code**: Modern C++20, comprehensive tests, clear documentation
-
         **GitHub Repository**: https://github.com/arav-behl/cpp_project
-
-        Questions? Feel free to reach out!
         """)
 
         # Show example output
-        st.markdown("### 📟 Example Terminal Output")
+        st.markdown("### Example Terminal Output")
         st.code("""
 ╔══════════════════════════════════════════════════════════════╗
-║              🚀 REAL-TIME TRADING SYSTEM 🚀                  ║
+║              REAL-TIME TRADING SYSTEM                        ║
 ║                    C++20 Low-Latency Engine                  ║
 ╠══════════════════════════════════════════════════════════════╣
 ║ Runtime: 15s                                                 ║
@@ -228,9 +208,9 @@ def main():
 ║ Latency: P50=125μs | P95=380μs | P99=950μs                 ║
 ╚══════════════════════════════════════════════════════════════╝
 
-🚨 SIGNAL 000001 | ZBreak | AAPL | strength=2.61 | lat=120μs
-🚨 SIGNAL 000002 | CorrBreak | AAPL/MSFT | strength=0.18 | lat=135μs
-🚨 SIGNAL 000003 | VolSpike | TSLA | strength=3.42 | lat=98μs
+SIGNAL 000001 | ZBreak | AAPL | strength=2.61 | lat=120μs
+SIGNAL 000002 | CorrBreak | AAPL/MSFT | strength=0.18 | lat=135μs
+SIGNAL 000003 | VolSpike | TSLA | strength=3.42 | lat=98μs
         """, language="text")
 
     else:
@@ -238,13 +218,13 @@ def main():
         # MAIN DASHBOARD WITH DATA VISUALIZATION
         # ========================================
 
-        st.success("✅ Data loaded successfully!")
+        st.success("Data loaded successfully!")
 
         # ========================================
         # SIDEBAR CONTROLS
         # ========================================
         with st.sidebar:
-            st.header("⚙️ Dashboard Controls")
+            st.header("Dashboard Controls")
 
             # Signal type filter
             signal_types = ['All'] + sorted(signals_df['type'].unique().tolist())
@@ -270,7 +250,7 @@ def main():
                 )
 
             st.markdown("---")
-            st.markdown("### 📊 About This System")
+            st.markdown("### About This System")
             st.markdown("""
             **Architecture:**
             - Lock-free SPSC queue
@@ -306,7 +286,7 @@ def main():
         # ========================================
         # KEY METRICS ROW
         # ========================================
-        st.markdown("## 📈 Performance Metrics")
+        st.markdown("## Performance Metrics")
 
         col1, col2, col3, col4 = st.columns(4)
 
@@ -338,7 +318,7 @@ def main():
         # ========================================
         # LATENCY DISTRIBUTION
         # ========================================
-        st.markdown("## ⏱️ Latency Distribution")
+        st.markdown("## Latency Distribution")
 
         col1, col2 = st.columns([2, 1])
 
@@ -370,7 +350,7 @@ def main():
             st.plotly_chart(fig_latency, use_container_width=True)
 
         with col2:
-            st.markdown("### 🎯 Latency Percentiles")
+            st.markdown("### Latency Percentiles")
 
             # Calculate percentiles
             percentiles = [50, 75, 90, 95, 99]
@@ -389,7 +369,7 @@ def main():
         # ========================================
         # SIGNAL ANALYSIS
         # ========================================
-        st.markdown("## 🚨 Signal Analysis")
+        st.markdown("## Signal Analysis")
 
         col1, col2 = st.columns(2)
 
@@ -428,7 +408,7 @@ def main():
         # SIGNALS OVER TIME
         # ========================================
         if 'timestamp_sec' in filtered_signals.columns:
-            st.markdown("## 📊 Signals Over Time")
+            st.markdown("## Signals Over Time")
 
             # Group signals by time windows
             time_bins = pd.cut(filtered_signals['timestamp_sec'], bins=50)
@@ -453,7 +433,7 @@ def main():
         # ========================================
         # SYMBOL PAIR ANALYSIS
         # ========================================
-        st.markdown("## 🔗 Symbol Pair Analysis")
+        st.markdown("## Symbol Pair Analysis")
 
         # Get correlation break signals
         corr_signals = filtered_signals[
@@ -487,7 +467,7 @@ def main():
         # ========================================
         # RECENT SIGNALS TABLE
         # ========================================
-        st.markdown("## 📋 Recent Signals")
+        st.markdown("## Recent Signals")
 
         # Show top signals
         display_columns = ['timestamp_sec', 'signal_id', 'type', 'primary_symbol', 'secondary_symbol', 'signal_strength', 'confidence']
@@ -508,7 +488,7 @@ def main():
         # ========================================
         # TECHNICAL DETAILS EXPANDER
         # ========================================
-        with st.expander("🔧 Technical Implementation Details"):
+        with st.expander("Technical Implementation Details"):
             st.markdown("""
             ### System Architecture
 

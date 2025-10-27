@@ -1,28 +1,30 @@
-# 🚀 C++ Real-Time Trading System
+# C++ Real-Time Trading System
 
-> **Production-grade, low-latency market data handler in C++20**
+> Production-grade, low-latency market data handler in C++20
 
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 [![Latency](https://img.shields.io/badge/latency-sub--ms-brightgreen)]()
 
-**Perfect for quant/HFT interviews** — Demonstrates lock-free concurrency, numerically stable algorithms, and cache-aware design.
+A low-latency C++ trading system demonstrating lock-free concurrency, numerically stable algorithms, and cache-aware design.
 
-**👉 GitHub:** https://github.com/arav-behl/cpp_project
-
----
-
-## 🎯 What This Demonstrates
-
-✅ **Lock-free concurrency** (SPSC queues with acquire/release semantics)
-✅ **Numerically stable statistics** (Welford's algorithm, online covariance)
-✅ **Real-time signal generation** (Z-score, correlation, mean reversion)
-✅ **Cache-aware design** (`alignas(64)`, false sharing prevention)
-✅ **Modern C++20** (atomics, move semantics, constexpr, concepts)
+**GitHub:** https://github.com/arav-behl/cpp_project
 
 ---
 
-## 🏗️ Architecture
+## Overview
+
+This project demonstrates:
+
+- **Lock-free concurrency** (SPSC queues with acquire/release semantics)
+- **Numerically stable statistics** (Welford's algorithm, online covariance)
+- **Real-time signal generation** (Z-score, correlation, mean reversion)
+- **Cache-aware design** (`alignas(64)`, false sharing prevention)
+- **Modern C++20** (atomics, move semantics, constexpr, concepts)
+
+---
+
+## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -86,9 +88,7 @@
 
 ---
 
-## 🚀 Quick Start
-
-### For Recruiters (2 Commands)
+## Quick Start
 
 ```bash
 # Build
@@ -98,72 +98,57 @@ cmake -S . -B build && cmake --build build -j8
 ./build/demo_realtime --duration 30 --rate 2000
 ```
 
-**What you'll see:**
+You'll see:
 - Live terminal dashboard updating every second
 - Signal detections (Z-score, correlation breaks)
 - Latency stats (P50/P95/P99 in microseconds)
 - Throughput metrics (ticks/sec)
 
-### Option 2: Record a Demo Video
-
-For remote demos, record your terminal:
-
-```bash
-# macOS: Use QuickTime (Cmd+Shift+5)
-# Linux: Use SimpleScreenRecorder or OBS
-# Windows: Use OBS Studio or Windows Game Bar
-
-# Then run:
-./build/demo_realtime --duration 30 --rate 2000
-```
-
-Upload to YouTube/Loom and share the link!
-
 ---
 
-## 🎪 Interview Talking Points
+## Key Technical Features
 
 ### Systems Engineering
-1. **"Implemented lock-free SPSC queue using C++20 atomics with acquire/release semantics"**
+1. **Lock-free SPSC queue using C++20 atomics with acquire/release semantics**
    - File: [`include/md/spsc_queue.hpp`](include/md/spsc_queue.hpp#L15-L16)
    - Cache line alignment prevents false sharing
    - Memory ordering ensures visibility without seq_cst cost
 
-2. **"Power-of-2 sizing enables bitwise AND for fast modulo"**
+2. **Power-of-2 sizing enables bitwise AND for fast modulo**
    - 10x faster than division: `index = (head + 1) & MASK`
 
-3. **"Move semantics eliminate allocations - zero-copy tick transfer"**
+3. **Move semantics eliminate allocations - zero-copy tick transfer**
    - `buffer_[head & MASK] = std::move(tick);`
 
 ### Quantitative Finance
-1. **"Welford's algorithm for online statistics - O(1) space, numerically stable"**
+1. **Welford's algorithm for online statistics - O(1) space, numerically stable**
    - File: [`include/stats/rolling_stats.hpp`](include/stats/rolling_stats.hpp#L18-L24)
    - Prevents catastrophic cancellation in variance computation
    - Works with extreme values (1e-9 to 1e9)
 
-2. **"Online covariance for real-time correlation analysis"**
+2. **Online covariance for real-time correlation analysis**
    - File: [`include/stats/rolling_covar.hpp`](include/stats/rolling_covar.hpp#L20-L35)
    - Enables pairs trading without storing historical data
 
-3. **"Multi-strategy signal engine with adaptive thresholds"**
+3. **Multi-strategy signal engine with adaptive thresholds**
    - Z-score, correlation, volume, mean reversion
    - Composite scoring with configurable weights
 
 ### Performance Engineering
-1. **"Header-only hot path enables aggressive compiler optimizations"**
+1. **Header-only hot path enables aggressive compiler optimizations**
    - Inlining, constant propagation, dead code elimination
 
-2. **"Cache-aware data layout - hot fields first"**
+2. **Cache-aware data layout - hot fields first**
    - `struct alignas(64) Tick` with prices at offset 0
    - Reduces L1 cache misses by 50%+
 
-3. **"String interning via symbol table - O(1) lookup, bounded memory"**
+3. **String interning via symbol table - O(1) lookup, bounded memory**
    - Thread-safe with double-checked locking
    - Fast path is lock-free read
 
 ---
 
-## 🔬 Technical Deep Dive
+## Technical Deep Dive
 
 ### Memory Ordering
 ```cpp
@@ -196,7 +181,7 @@ buffer_[head & MASK] = std::move(tick);  // Ownership transfer, not copy
 
 ---
 
-## 📈 Performance Benchmarks
+## Performance Benchmarks
 
 **Hardware:** MacBook Pro M1 / Intel i7-10700K
 **Compiler:** Clang 15 / GCC 11 with `-O3 -march=native`
@@ -216,7 +201,7 @@ cat data/latency_histogram.csv
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 ./build/test_suite
@@ -230,7 +215,7 @@ cat data/latency_histogram.csv
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── include/              # C++ headers (header-only for performance)
@@ -256,7 +241,7 @@ cat data/latency_histogram.csv
 
 ---
 
-## 🛠️ Requirements
+## Requirements
 
 - **C++20** compiler (GCC 10+, Clang 12+, MSVC 2019+)
 - **CMake 3.20+**
@@ -264,7 +249,7 @@ cat data/latency_histogram.csv
 
 ---
 
-## 🚧 Future Extensions (Stretch Goals)
+## Future Extensions
 
 - [ ] **Multi-producer support** (MPMC queue with sharding)
 - [ ] **UDP multicast parser** (replace simulator with real feed)
@@ -274,31 +259,4 @@ cat data/latency_histogram.csv
 
 ---
 
-## 💼 For Recruiters
-
-**Why this project is impressive:**
-
-1. **Real-world complexity** - Not a toy; patterns used at Bloomberg, LMAX, Citadel
-2. **Production-ready** - Memory ordering correctness, numerical stability, testable
-3. **Performance-first** - Sub-millisecond latency, millions of ops/sec
-4. **Clean code** - Modern C++20, well-documented, follows best practices
-
-**Questions I can answer:**
-- How would you scale this to multi-producer?
-- What's the latency bottleneck and how would you optimize?
-- How would you add risk management or PnL tracking?
-- Can this handle real UDP multicast feeds?
-
-**📧 Let's talk if you're hiring for:**
-- Quantitative Developer / Researcher
-- HFT Systems Engineer
-- C++ Performance Engineer
-- Low-Latency Trading Systems
-
----
-
 **GitHub:** https://github.com/arav-behl/cpp_project
-
----
-
-**Built with ❤️ for quantitative finance interviews**

@@ -1,10 +1,10 @@
-# 🎯 5-Minute Demo for Recruiters
+# Demo Guide
 
-**TL;DR:** This is a production-quality, low-latency C++ trading system demonstrating systems programming and quantitative finance skills.
+This is a production-quality, low-latency C++ trading system demonstrating systems programming and quantitative finance skills.
 
 ---
 
-## Quick Start (2 commands)
+## Quick Start
 
 ```bash
 # 1. Build the system
@@ -14,7 +14,7 @@ cmake -S . -B build && cmake --build build -j8
 ./build/demo_realtime --duration 30 --rate 2000
 ```
 
-**What you'll see:**
+You'll see:
 - Live terminal dashboard updating every second
 - Real-time signal detection (Z-score breakouts, correlation breaks)
 - Latency statistics (P50/P95/P99 in microseconds)
